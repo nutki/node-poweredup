@@ -36,7 +36,7 @@ export class SPIKEPrimeHub extends LPF2Hub {
 
     constructor (device: IBLEDevice, autoSubscribe: boolean = true) {
         super(device, autoSubscribe);
-        this.type = Consts.HubType.BOOST_MOVE_HUB;
+        this.type = Consts.HubType.SPIKE_PRIME_HUB;
         this._ports = {
             "A": new Port("A", 55),
             "B": new Port("B", 56),
