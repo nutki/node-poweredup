@@ -13,7 +13,8 @@ export enum HubType {
     BOOST_MOVE_HUB = 2,
     POWERED_UP_HUB = 3,
     POWERED_UP_REMOTE = 4,
-    DUPLO_TRAIN_HUB = 5
+    DUPLO_TRAIN_HUB = 5,
+    SPIKE_PRIME_HUB = 6
 }
 
 

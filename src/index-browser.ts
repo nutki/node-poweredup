@@ -5,9 +5,10 @@ import { Hub } from "./hub";
 import { PoweredUP } from "./poweredup-browser";
 import { PUPHub } from "./puphub";
 import { PUPRemote } from "./pupremote";
+import { SPIKEPrimeHub } from "./spikeprimehub";
 import { WeDo2SmartHub } from "./wedo2smarthub";
 
 import { isWebBluetooth } from "./utils";
 
 // @ts-ignore
-window.PoweredUP = { PoweredUP, Hub, WeDo2SmartHub, BoostMoveHub, PUPHub, PUPRemote, DuploTrainBase, Consts, isWebBluetooth };
+window.PoweredUP = { PoweredUP, Hub, WeDo2SmartHub, BoostMoveHub, PUPHub, PUPRemote, DuploTrainBase, SPIKEPrimeHub, Consts, isWebBluetooth };
