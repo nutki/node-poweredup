@@ -14,8 +14,11 @@ export class TestDevice extends EventEmitter implements IBLEDevice {
 
     private _queue: Promise<any> = Promise.resolve();
     private _mailbox: Buffer[] = [];
-    private _outbox: Buffer[] = [];
-    private _outboxCallback: (() => void) | null = null;
+
+    private _outbox: {[uuid: string]: Buffer[]} = {};
+    private _outboxCallback: {[uuid: string]: () => void} = {};
+    private _inbox: {[uuid: string]: Buffer[]} = {};
+    private _inboxCallback: {[uuid: string]: (data: Buffer) => void} = {};
 
     private _connected: boolean = false;
     private _connecting: boolean = false;
@@ -74,6 +77,14 @@ export class TestDevice extends EventEmitter implements IBLEDevice {
 
 
     public subscribeToCharacteristic (uuid: string, callback: (data: Buffer) => void) {
+        this._inbox[uuid] = this._inbox[uuid] || [];
+        if (this._inbox[uuid].length >= 1) {
+            // @ts-ignore
+            callback(this._inbox[uuid].shift());
+        }
+        this._inboxCallback[uuid] = (data) => {
+            callback(data);
+        };
         return;
     }
 
@@ -89,10 +100,11 @@ export class TestDevice extends EventEmitter implements IBLEDevice {
 
 
     public writeToCharacteristic (uuid: string, data: Buffer, callback?: () => void) {
-        this._outbox.push(data);
-        if (this._outboxCallback) {
-            this._outboxCallback();
-            this._outboxCallback = null;
+        this._outbox[uuid] = this._outbox[uuid] || [];
+        this._outbox[uuid].push(data);
+        if (this._outboxCallback[uuid]) {
+            this._outboxCallback[uuid]();
+            delete this._outboxCallback[uuid];
         }
         if (callback) {
             callback();
@@ -100,22 +112,33 @@ export class TestDevice extends EventEmitter implements IBLEDevice {
     }
 
 
-    public readFromOutbox () {
+    public readFromOutbox (uuid: string) {
         return new Promise((resolve, reject) => {
-            if (this._outbox.length >= 1) {
-                return resolve(this._outbox.shift());
+            this._outbox[uuid] = this._outbox[uuid] || [];
+            if (this._outbox[uuid].length >= 1) {
+                return resolve(this._outbox[uuid].shift());
             } else {
-                this._outboxCallback = () => {
-                    return resolve(this._outbox.shift());
+                this._outboxCallback[uuid] = () => {
+                    return resolve(this._outbox[uuid].shift());
                 };
             }
         });
     }
 
 
-    public clearOutbox () {
-        this._outbox = [];
-        this._outboxCallback = null;
+    public postToInbox (uuid: string, data: Buffer) {
+        if (this._inboxCallback[uuid]) {
+            this._inboxCallback[uuid](data);
+        } else {
+            this._inbox[uuid] = this._inbox[uuid] || [];
+            this._inbox[uuid].push(data);
+        }
+    }
+
+
+    public clearOutbox (uuid: string) {
+        this._outbox[uuid] = [];
+        delete this._outboxCallback[uuid];
     }
 
 

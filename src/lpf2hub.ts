@@ -36,6 +36,9 @@ export class LPF2Hub extends Hub {
             if (this.type === Consts.HubType.DUPLO_TRAIN_HUB) {
                 this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x41, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01]));
             }
+            setTimeout(() => {
+                this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x03, 0x05])); // Request firmware version again
+            }, 200);
         });
     }
 

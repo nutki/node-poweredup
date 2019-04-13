@@ -31,12 +31,12 @@ poweredUP.on("discover", async (hub) => { // Wait to discover Vernie and Remote
                 switch (state) {
                     case PoweredUP.Consts.ButtonState.UP: // If up is pressed, move the track forward
                     {
-                        vernie.setMotorSpeed(button === "LEFT" ? "A" : "B", 50);
+                        vernie.setMotorSpeed(button === "LEFT" ? "A" : "B", 65);
                         break;
                     }
                     case PoweredUP.Consts.ButtonState.DOWN: // If down is pressed, move the track backwards
                     {
-                        vernie.setMotorSpeed(button === "LEFT" ? "A" : "B", -50);
+                        vernie.setMotorSpeed(button === "LEFT" ? "A" : "B", -65);
                         break;
                     }
                     case PoweredUP.Consts.ButtonState.RELEASED: // Stop the track when the button is released
