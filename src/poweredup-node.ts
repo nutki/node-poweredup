@@ -153,6 +153,9 @@ export class PoweredUP extends EventEmitter {
             hub.on("connect", () => {
                 debug(`Hub ${hub.uuid} connected`);
                 this._connectedHubs[hub.uuid] = hub;
+                if (wantScan) {
+                    startScanning();
+                }
             });
 
             hub.on("disconnect", () => {
