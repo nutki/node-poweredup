@@ -16,6 +16,8 @@ const modeInfoDebug = Debug("lpf2hubmodeinfo");
  */
 export class LPF2Hub extends Hub {
 
+    public static sendPortInformationRequests: boolean = false;
+
     protected _ledPort: number = 0x32;
 
     private _lastTiltX: number = 0;
@@ -257,12 +259,11 @@ export class LPF2Hub extends Hub {
 
     }
 
-
     private _parsePortMessage (data: Buffer) {
 
         let port = this._getPortForPortNumber(data[3]);
 
-        if (data[4] === 0x01) {
+        if (data[4] === 0x01 && LPF2Hub.sendPortInformationRequests) {
             this._sendPortInformationRequest(data[3]);
         }
 
@@ -295,11 +296,20 @@ export class LPF2Hub extends Hub {
 
     private _sendPortInformationRequest (port: number) {
         this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x21, port, 0x01]));
+        this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x21, port, 0x02])); // Mode combinations
     }
 
 
     private _parsePortInformationResponse (data: Buffer) {
         const port = data[3];
+        if (data[4] === 2) {
+            const modeCombinationMasks: number[] = [];
+            for (let i = 5; i < data.length; i += 2) {
+                modeCombinationMasks.push(data.readUInt16LE(i));
+            }
+            modeInfoDebug(`Port ${port}, mode combinations [${modeCombinationMasks.map((c) => c.toString(2)).join(", ")}]`);
+            return;
+        }
         const count = data[6];
         const input = data.readUInt16LE(7);
         const output = data.readUInt16LE(9);
@@ -311,6 +321,7 @@ export class LPF2Hub extends Hub {
             this._sendModeInformationRequest(port, i, 0x02); // PCT Range
             this._sendModeInformationRequest(port, i, 0x03); // SI Range
             this._sendModeInformationRequest(port, i, 0x04); // SI Symbol
+            this._sendModeInformationRequest(port, i, 0x80); // Value Format
         }
     }
 
@@ -340,6 +351,12 @@ export class LPF2Hub extends Hub {
             case 0x04: // SI Symbol
                 modeInfoDebug(`Port ${port}, mode ${mode}, SI symbol ${data.slice(6, data.length).toString()}`);
                 break;
+            case 0x80: // Value Format
+                const numValues = data[6];
+                const dataType = ["8bit", "16bit", "32bit", "float"][data[7]];
+                const totalFigures = data[8];
+                const decimals = data[9];
+                modeInfoDebug(`Port ${port}, mode ${mode}, Value ${numValues} x ${dataType}, Decimal format ${totalFigures}.${decimals}`);
         }
     }
 
