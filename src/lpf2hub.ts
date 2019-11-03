@@ -16,7 +16,7 @@ const modeInfoDebug = Debug("lpf2hubmodeinfo");
  */
 export class LPF2Hub extends Hub {
 
-    public static sendPortInformationRequests: boolean = false;
+    public sendPortInformationRequests: boolean = false;
 
     protected _ledPort: number = 0x32;
 
@@ -262,8 +262,10 @@ export class LPF2Hub extends Hub {
     private _parsePortMessage (data: Buffer) {
 
         let port = this._getPortForPortNumber(data[3]);
+        const type = data.readUInt16LE(5);
 
-        if (data[4] === 0x01 && LPF2Hub.sendPortInformationRequests) {
+        if (data[4] === 0x01 && this.sendPortInformationRequests) {
+            modeInfoDebug(`Port ${this._toHex(data[3])}, type ${this._toHex(type, 4)} (${Consts.DeviceTypeNames[data[5]] || "unknown"})`);
             this._sendPortInformationRequest(data[3]);
         }
 
@@ -276,7 +278,7 @@ export class LPF2Hub extends Hub {
                     port = this._getPortForPortNumber(data[3]);
                     if (port) {
                         port.connected = true;
-                        this._registerDeviceAttachment(port, data[5]);
+                        this._registerDeviceAttachment(port, type);
                     } else {
                         return;
                     }
@@ -288,7 +290,7 @@ export class LPF2Hub extends Hub {
             }
         } else {
             port.connected = (data[4] === 0x01 || data[4] === 0x02) ? true : false;
-            this._registerDeviceAttachment(port, data[5]);
+            this._registerDeviceAttachment(port, type);
         }
 
     }
@@ -307,13 +309,13 @@ export class LPF2Hub extends Hub {
             for (let i = 5; i < data.length; i += 2) {
                 modeCombinationMasks.push(data.readUInt16LE(i));
             }
-            modeInfoDebug(`Port ${port}, mode combinations [${modeCombinationMasks.map((c) => c.toString(2)).join(", ")}]`);
+            modeInfoDebug(`Port ${this._toHex(port)}, mode combinations [${modeCombinationMasks.map((c) => this._toBin(c, 0)).join(", ")}]`);
             return;
         }
         const count = data[6];
-        const input = data.readUInt16LE(7);
-        const output = data.readUInt16LE(9);
-        modeInfoDebug(`Port ${port}, total modes ${count}, input modes ${input.toString(2)}, output modes ${output.toString(2)}`);
+        const input = this._toBin(data.readUInt16LE(7), count);
+        const output = this._toBin(data.readUInt16LE(9), count);
+        modeInfoDebug(`Port ${this._toHex(port)}, total modes ${count}, input modes ${input}, output modes ${output}`);
 
         for (let i = 0; i < count; i++) {
             this._sendModeInformationRequest(port, i, 0x00); // Mode Name
@@ -332,7 +334,7 @@ export class LPF2Hub extends Hub {
 
 
     private _parseModeInformationResponse (data: Buffer) {
-        const port = data[3];
+        const port = this._toHex(data[3]);
         const mode = data[4];
         const type = data[5];
         switch (type) {
