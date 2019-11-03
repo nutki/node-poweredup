@@ -394,17 +394,14 @@ export class WeDo2SmartHub extends Hub {
         if (port && port.connected) {
             switch (port.type) {
                 case Consts.DeviceType.WEDO2_DISTANCE: {
-                    let distance = data[2];
-                    if (data[3] === 1) {
-                        distance = data[2] + 255;
-                    }
+                    const distance = data[2];
                     /**
                      * Emits when a distance sensor is activated.
                      * @event WeDo2SmartHub#distance
                      * @param {string} port
                      * @param {number} distance Distance, in millimeters.
                      */
-                    this.emit("distance", port.id, distance * 10);
+                    this.emit("distance", port.id, Math.floor(distance * 25.4));
                     break;
                 }
                 case Consts.DeviceType.BOOST_DISTANCE: {

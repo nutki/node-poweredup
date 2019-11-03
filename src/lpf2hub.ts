@@ -466,17 +466,14 @@ export class LPF2Hub extends Hub {
         if (port && port.connected) {
             switch (port.type) {
                 case Consts.DeviceType.WEDO2_DISTANCE: {
-                    let distance = data[4];
-                    if (data[5] === 1) {
-                        distance = data[4] + 255;
-                    }
+                    const distance = data[4];
                     /**
                      * Emits when a distance sensor is activated.
                      * @event LPF2Hub#distance
                      * @param {string} port
                      * @param {number} distance Distance, in millimeters.
                      */
-                    this.emit("distance", port.id, distance * 10);
+                    this.emit("distance", port.id, Math.floor(distance * 25.4));
                     break;
                 }
                 case Consts.DeviceType.BOOST_DISTANCE: {
