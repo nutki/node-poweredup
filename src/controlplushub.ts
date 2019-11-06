@@ -26,6 +26,10 @@ export class ControlPlusHub extends LPF2Hub {
             peripheral.advertisement.serviceUuids.indexOf(Consts.BLEService.LPF2_HUB.replace(/-/g, "")) >= 0 && peripheral.advertisement.manufacturerData[3] === Consts.BLEManufacturerData.CONTROL_PLUS_LARGE_HUB);
     }
 
+    protected _currentPort = 0x3b;
+    protected _voltagePort = 0x3c;
+    protected _voltageMaxV = 9.612;
+    protected _voltageMaxRaw = 4095;
 
     constructor (device: IBLEDevice, autoSubscribe: boolean = true) {
         super(device, autoSubscribe);

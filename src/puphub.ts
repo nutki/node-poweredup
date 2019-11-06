@@ -26,6 +26,9 @@ export class PUPHub extends LPF2Hub {
             peripheral.advertisement.serviceUuids.indexOf(Consts.BLEService.LPF2_HUB.replace(/-/g, "")) >= 0 && peripheral.advertisement.manufacturerData[3] === Consts.BLEManufacturerData.POWERED_UP_HUB_ID);
     }
 
+    protected _currentPort = 0x3b;
+    protected _voltagePort = 0x3c;
+    protected _voltageMaxV = 9.62;
 
     constructor (device: IBLEDevice, autoSubscribe: boolean = true) {
         super(device, autoSubscribe);

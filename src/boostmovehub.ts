@@ -26,6 +26,8 @@ export class BoostMoveHub extends LPF2Hub {
             peripheral.advertisement.serviceUuids.indexOf(Consts.BLEService.LPF2_HUB.replace(/-/g, "")) >= 0 && peripheral.advertisement.manufacturerData[3] === Consts.BLEManufacturerData.BOOST_MOVE_HUB_ID);
     }
 
+    protected _currentPort = 0x3b;
+    protected _voltagePort = 0x3c;
 
     constructor (device: IBLEDevice, autoSubscribe: boolean = true) {
         super(device, autoSubscribe);
