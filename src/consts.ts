@@ -46,7 +46,12 @@ export const HubTypeNames = HubType;
  * @property {number} CONTROL_PLUS_LARGE_MOTOR 46
  * @property {number} CONTROL_PLUS_XLARGE_MOTOR 47
  * @property {number} POWERED_UP_REMOTE_BUTTON 55
+<<<<<<< HEAD
  * @property {number} RSSI 56
+=======
+ * @property {number} CONTROL_PLUS_ACCELEROMETER 58
+ * @property {number} CONTROL_PLUS_TILT 59
+>>>>>>> 7255c83ae92bcc377de833c9f2caba3770e7df46
  */
 export enum DeviceType {
     UNKNOWN = 0,
@@ -70,7 +75,12 @@ export enum DeviceType {
     CONTROL_PLUS_LARGE_MOTOR = 46,
     CONTROL_PLUS_XLARGE_MOTOR = 47,
     POWERED_UP_REMOTE_BUTTON = 55,
+<<<<<<< HEAD
     RSSI = 56,
+=======
+    CONTROL_PLUS_ACCELEROMETER = 58,
+    CONTROL_PLUS_TILT = 59
+>>>>>>> 7255c83ae92bcc377de833c9f2caba3770e7df46
 }
 
 

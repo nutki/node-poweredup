@@ -1,5 +1,4 @@
-import compareVersion from "compare-versions";
-import { Peripheral } from "noble";
+import { Peripheral } from "@abandonware/noble";
 
 import { LPF2Hub } from "./lpf2hub";
 import { Port } from "./port";
@@ -21,9 +20,14 @@ export class ControlPlusHub extends LPF2Hub {
 
 
     public static IsControlPlusHub (peripheral: Peripheral) {
-        return (peripheral.advertisement &&
+        return (
+            peripheral.advertisement &&
             peripheral.advertisement.serviceUuids &&
-            peripheral.advertisement.serviceUuids.indexOf(Consts.BLEService.LPF2_HUB.replace(/-/g, "")) >= 0 && peripheral.advertisement.manufacturerData[3] === Consts.BLEManufacturerData.CONTROL_PLUS_LARGE_HUB);
+            peripheral.advertisement.serviceUuids.indexOf(Consts.BLEService.LPF2_HUB.replace(/-/g, "")) >= 0 &&
+            peripheral.advertisement.manufacturerData &&
+            peripheral.advertisement.manufacturerData.length > 3 &&
+            peripheral.advertisement.manufacturerData[3] === Consts.BLEManufacturerData.CONTROL_PLUS_LARGE_HUB
+        );
     }
 
     protected _currentPort = 0x3b;
@@ -39,7 +43,8 @@ export class ControlPlusHub extends LPF2Hub {
             "B": new Port("B", 1),
             "C": new Port("C", 2),
             "D": new Port("D", 3),
-            // "TILT": new Port("TILT", 60)
+            "ACCEL": new Port("ACCEL", 98),
+            "TILT": new Port("TILT", 99)
         };
         this.on("attach", (port, type) => {
             this._combinePorts(port, type);
@@ -52,8 +57,6 @@ export class ControlPlusHub extends LPF2Hub {
         return new Promise(async (resolve, reject) => {
             debug("Connecting to Control+ Hub");
             await super.connect();
-            this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x41, 0x62, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x01])); // Accelerometer
-            this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x41, 0x63, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01])); // Gyro/Tilt
             this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x41, 0x3d, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x01])); // Temperature
             debug("Connect completed");
             return resolve();

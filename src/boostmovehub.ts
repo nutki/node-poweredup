@@ -1,5 +1,5 @@
+import { Peripheral } from "@abandonware/noble";
 import compareVersion from "compare-versions";
-import { Peripheral } from "noble";
 
 import { LPF2Hub } from "./lpf2hub";
 import { Port } from "./port";
@@ -21,9 +21,14 @@ export class BoostMoveHub extends LPF2Hub {
 
 
     public static IsBoostMoveHub (peripheral: Peripheral) {
-        return (peripheral.advertisement &&
+        return (
+            peripheral.advertisement &&
             peripheral.advertisement.serviceUuids &&
-            peripheral.advertisement.serviceUuids.indexOf(Consts.BLEService.LPF2_HUB.replace(/-/g, "")) >= 0 && peripheral.advertisement.manufacturerData[3] === Consts.BLEManufacturerData.BOOST_MOVE_HUB_ID);
+            peripheral.advertisement.serviceUuids.indexOf(Consts.BLEService.LPF2_HUB.replace(/-/g, "")) >= 0 &&
+            peripheral.advertisement.manufacturerData &&
+            peripheral.advertisement.manufacturerData.length > 3 &&
+            peripheral.advertisement.manufacturerData[3] === Consts.BLEManufacturerData.BOOST_MOVE_HUB_ID
+        );
     }
 
     protected _currentPort = 0x3b;

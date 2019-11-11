@@ -1,4 +1,4 @@
-import { Peripheral } from "noble";
+import { Peripheral } from "@abandonware/noble";
 
 import { LPF2Hub } from "./lpf2hub";
 import { Port } from "./port";
@@ -20,9 +20,14 @@ export class DuploTrainBase extends LPF2Hub {
 
 
     public static IsDuploTrainBase (peripheral: Peripheral) {
-        return (peripheral.advertisement &&
+        return (
+            peripheral.advertisement &&
             peripheral.advertisement.serviceUuids &&
-            peripheral.advertisement.serviceUuids.indexOf(Consts.BLEService.LPF2_HUB.replace(/-/g, "")) >= 0 && peripheral.advertisement.manufacturerData[3] === Consts.BLEManufacturerData.DUPLO_TRAIN_HUB_ID);
+            peripheral.advertisement.serviceUuids.indexOf(Consts.BLEService.LPF2_HUB.replace(/-/g, "")) >= 0 &&
+            peripheral.advertisement.manufacturerData &&
+            peripheral.advertisement.manufacturerData.length > 3 &&
+            peripheral.advertisement.manufacturerData[3] === Consts.BLEManufacturerData.DUPLO_TRAIN_HUB_ID
+        );
     }
 
 
@@ -30,6 +35,7 @@ export class DuploTrainBase extends LPF2Hub {
     protected _voltagePort = 0x14;
     protected _voltageMaxV = 6.4;
     protected _voltageMaxRaw = 3047;
+
 
     constructor (device: IBLEDevice, autoSubscribe: boolean = true) {
         super(device, autoSubscribe);

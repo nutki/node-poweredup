@@ -1,4 +1,4 @@
-import { Peripheral } from "noble";
+import { Peripheral } from "@abandonware/noble";
 
 import { Hub } from "./hub";
 import { Port } from "./port";
@@ -44,6 +44,7 @@ export class LPF2Hub extends Hub {
             this._bleDevice.subscribeToCharacteristic(Consts.BLECharacteristic.LPF2_ALL, this._parseMessage.bind(this));
             this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x02, 0x02])); // Activate button reports
             this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x03, 0x05])); // Request firmware version
+            this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x04, 0x05])); // Request hardware version
             this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x06, 0x02])); // Activate battery level reports
             if (this._voltagePort !== undefined) {
                 this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x41, this._voltagePort, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01])); // Activate voltage reports
@@ -262,6 +263,10 @@ export class LPF2Hub extends Hub {
             this._firmwareVersion = LPF2Hub.decodeVersion(data.readInt32LE(5));
             this._checkFirmware(this._firmwareVersion);
 
+        // Hardware version
+        } else if (data[3] === 0x04) {
+            this._hardwareVersion = LPF2Hub.decodeVersion(data.readInt32LE(5));
+
         // Battery level reports
         } else if (data[3] === 0x06) {
             this._batteryLevel = data[5];
@@ -408,33 +413,6 @@ export class LPF2Hub extends Hub {
             return;
         }
 
-        if ((data[3] === 0x62 && this.type === Consts.HubType.CONTROL_PLUS_HUB)) { // Control+ Accelerometer
-            const accelX = Math.round((data.readInt16LE(4) / 28571) * 2000);
-            const accelY = Math.round((data.readInt16LE(6) / 28571) * 2000);
-            const accelZ = Math.round((data.readInt16LE(8) / 28571) * 2000);
-            /**
-             * Emits when accelerometer detects movement. Measured in DPS - degrees per second.
-             * @event LPF2Hub#accel
-             * @param {string} port
-             * @param {number} x
-             * @param {number} y
-             * @param {number} z
-             */
-            this.emit("accel", "ACCEL", accelX, accelY, accelZ);
-            return;
-        }
-
-        if ((data[3] === 0x63 && this.type === Consts.HubType.CONTROL_PLUS_HUB)) { // Control+ Accelerometer
-            const tiltZ = data.readInt16LE(4);
-            const tiltY = data.readInt16LE(6);
-            const tiltX = data.readInt16LE(8);
-            this._lastTiltX = tiltX;
-            this._lastTiltY = tiltY;
-            this._lastTiltZ = tiltZ;
-            this.emit("tilt", "TILT", this._lastTiltX, this._lastTiltY, this._lastTiltZ);
-            return;
-        }
-
         if ((data[3] === 0x3d && this.type === Consts.HubType.CONTROL_PLUS_HUB)) { // Control+ CPU Temperature
             /**
              * Emits when a change is detected on a temperature sensor. Measured in degrees centigrade.
@@ -540,6 +518,31 @@ export class LPF2Hub extends Hub {
                 case Consts.DeviceType.CONTROL_PLUS_XLARGE_MOTOR: {
                     const rotation = data.readInt32LE(4);
                     this.emit("rotate", port.id, rotation);
+                    break;
+                }
+                case Consts.DeviceType.CONTROL_PLUS_TILT: {
+                    const tiltZ = data.readInt16LE(4);
+                    const tiltY = data.readInt16LE(6);
+                    const tiltX = data.readInt16LE(8);
+                    this._lastTiltX = tiltX;
+                    this._lastTiltY = tiltY;
+                    this._lastTiltZ = tiltZ;
+                    this.emit("tilt", "TILT", this._lastTiltX, this._lastTiltY, this._lastTiltZ);
+                    break;
+                }
+                case Consts.DeviceType.CONTROL_PLUS_ACCELEROMETER: {
+                    const accelX = Math.round((data.readInt16LE(4) / 28571) * 2000);
+                    const accelY = Math.round((data.readInt16LE(6) / 28571) * 2000);
+                    const accelZ = Math.round((data.readInt16LE(8) / 28571) * 2000);
+                    /**
+                     * Emits when accelerometer detects movement. Measured in DPS - degrees per second.
+                     * @event LPF2Hub#accel
+                     * @param {string} port
+                     * @param {number} x
+                     * @param {number} y
+                     * @param {number} z
+                     */
+                    this.emit("accel", "ACCEL", accelX, accelY, accelZ);
                     break;
                 }
                 case Consts.DeviceType.BOOST_TILT: {
