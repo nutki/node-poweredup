@@ -61,15 +61,6 @@ export class LPF2Hub extends Hub {
             this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x05, 0x02])); // Activate RSSI updates
             this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x06, 0x02])); // Activate battery level reports
             this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x0d, 0x05])); // Request primary MAC address
-            if (this._voltagePort !== undefined) {
-                this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x41, this._voltagePort, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01])); // Activate voltage reports
-            }
-            if (this._currentPort !== undefined) {
-                this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x41, this._currentPort, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01])); // Activate current reports
-            }
-            if (this.type === Consts.HubType.DUPLO_TRAIN_HUB) {
-                this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x41, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01]));
-            }
             this.emit("connect");
             resolve();
         });
