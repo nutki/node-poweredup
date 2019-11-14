@@ -21,6 +21,10 @@ export class LPF2Hub extends Hub {
         return [t[0], t[1], t.substring(2, 4), t.substring(4)].join(".");
     }
 
+    private static decodeMACAddress(v: Uint8Array) {
+        return Array.from(v).map((n) => toHex(n, 2)).join(":");
+    }
+
     protected _ledPort: number = 0x32;
     protected _voltagePort: number | undefined;
     protected _voltageMaxV: number = 9.6;
@@ -41,10 +45,22 @@ export class LPF2Hub extends Hub {
             await super.connect();
             await this._bleDevice.discoverCharacteristicsForService(Consts.BLEService.LPF2_HUB);
             this._bleDevice.subscribeToCharacteristic(Consts.BLECharacteristic.LPF2_ALL, this._parseMessage.bind(this));
+            if (this._voltagePort !== undefined) {
+                this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x41, this._voltagePort, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01])); // Activate voltage reports
+            }
+            if (this._currentPort !== undefined) {
+                this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x41, this._currentPort, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01])); // Activate current reports
+            }
+            if (this.type === Consts.HubType.DUPLO_TRAIN_HUB) {
+                this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x41, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01]));
+            }
+            await this.sleep(100);
             this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x02, 0x02])); // Activate button reports
             this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x03, 0x05])); // Request firmware version
             this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x04, 0x05])); // Request hardware version
+            this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x05, 0x02])); // Activate RSSI updates
             this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x06, 0x02])); // Activate battery level reports
+            this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x0d, 0x05])); // Request primary MAC address
             if (this._voltagePort !== undefined) {
                 this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x41, this._voltagePort, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01])); // Activate voltage reports
             }
@@ -56,9 +72,6 @@ export class LPF2Hub extends Hub {
             }
             this.emit("connect");
             resolve();
-            setTimeout(() => {
-                this._writeMessage(Consts.BLECharacteristic.LPF2_ALL, Buffer.from([0x01, 0x03, 0x05])); // Request firmware version again
-            }, 200);
         });
     }
 
@@ -265,6 +278,18 @@ export class LPF2Hub extends Hub {
         // Hardware version
         } else if (data[3] === 0x04) {
             this._hardwareVersion = LPF2Hub.decodeVersion(data.readInt32LE(5));
+
+        // RSSI update
+        } else if (data[3] === 0x05) {
+            const rssi = data.readInt8(5);
+            if (rssi !== 0) {
+                this._rssi = rssi;
+                this.emit("rssiChange", this._rssi);
+            }
+
+        // primary MAC Address
+        } else if (data[3] === 0x0d) {
+            this._primaryMACAddress = LPF2Hub.decodeMACAddress(data.slice(4, 10));
 
         // Battery level reports
         } else if (data[3] === 0x06) {

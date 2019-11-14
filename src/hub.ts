@@ -26,9 +26,11 @@ export class Hub extends EventEmitter {
     protected _name: string = "";
     protected _firmwareVersion: string = "0.0.00.0000";
     protected _hardwareVersion: string = "0.0.00.0000";
+    protected _primaryMACAddress: string = "00:00:00:00:00:00";
     protected _batteryLevel: number = 100;
     protected _voltage: number = 0;
     protected _current: number = 0;
+    protected _rssi: number = -60;
 
     protected _bleDevice: IBLEDevice;
 
@@ -74,6 +76,15 @@ export class Hub extends EventEmitter {
 
     /**
      * @readonly
+     * @property {string} primaryMACAddress Primary MAC address of the hub
+     */
+    public get primaryMACAddress () {
+        return this._primaryMACAddress;
+    }
+
+
+    /**
+     * @readonly
      * @property {string} uuid UUID of the hub
      */
     public get uuid () {
@@ -87,6 +98,15 @@ export class Hub extends EventEmitter {
      */
     public get batteryLevel () {
         return this._batteryLevel;
+    }
+
+
+    /**
+     * @readonly
+     * @property {number} rssi Signal strength of the hub
+     */
+    public get rssi () {
+        return this._rssi;
     }
 
 
